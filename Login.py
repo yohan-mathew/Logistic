@@ -71,15 +71,28 @@ class CreateBottom(custom.CTkFrame):
           custom.CTkButton(self,width=100,text="Reports").grid(row=7,column=0,pady=(0,15))
 
      def __captureDetailsArrival(self):
+          def getTime():
+               todayTime_date=datetime.now()
+               day = todayTime_date.strftime("%d/%M/%y")
+               time = todayTime_date.strftime("%I:%M")
+               return day,time
+          
+          def __addToDb():
+               txt_sourceLocation.delete(0,custom.END)
+               txt_BargeNo.delete(0,custom.END)
+               txt_BargeArrivalDate.delete(0,custom.END)
+               txt_BargeArrivaltime.delete(0,custom.END)
+               txt_BargeArrivalDate.insert(0,string=getTime()[0])
+               txt_BargeArrivaltime.insert(0,string=getTime()[1])
+               txt_productlid.deselect()
+               txt_productDetails.delete('1.0',custom.END)
+               txt_comments.delete('1.0',custom.END)
           
           def __goBack():
                for widget in self.winfo_children():
                     widget.destroy()
                self.optionScreen()
           
-          todayTime_date=datetime.now()
-          day = todayTime_date.strftime("%d/%M/%y")
-          time = todayTime_date.strftime("%I:%M")
           
           
           
@@ -95,9 +108,9 @@ class CreateBottom(custom.CTkFrame):
           txt_sourceLocation= custom.CTkEntry(self,placeholder_text='try "portland"')
           txt_BargeNo = custom.CTkEntry(self,placeholder_text='try "XAE234"')
           txt_BargeArrivalDate = custom.CTkEntry(self)
-          txt_BargeArrivalDate.insert(0,string=day)
+          txt_BargeArrivalDate.insert(0,string=getTime()[0])
           txt_BargeArrivaltime = custom.CTkEntry(self)
-          txt_BargeArrivaltime.insert(0,string=time)
+          txt_BargeArrivaltime.insert(0,string=getTime()[1])
           
           txt_productlid = custom.CTkCheckBox(self,text="Product Has a Lid")
           txt_productDetails = custom.CTkTextbox(self,width=300,height=50,activate_scrollbars=True)
@@ -109,7 +122,7 @@ class CreateBottom(custom.CTkFrame):
           lbl_BargeArrivalDate = custom.CTkLabel(self,text="Arrival Date: ")
           lbl_BargeArrivaltime= custom.CTkLabel(self,text="Arrival Time: ")
           
-          btn_save = custom.CTkButton(self,width=150,text="save")
+          btn_save = custom.CTkButton(self,width=150,text="save", command=__addToDb)
           btn_back = custom.CTkButton(self,width=150,text="back", command=__goBack)
           
           lbl_bargeheading.grid(row=0,column=0,columnspan=2)
