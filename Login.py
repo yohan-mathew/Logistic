@@ -1,3 +1,4 @@
+import sqlite3
 from tkinter import Tk
 import time
 import sys
@@ -71,22 +72,86 @@ class CreateBottom(custom.CTkFrame):
           custom.CTkButton(self,width=100,text="Reports").grid(row=7,column=0,pady=(0,15))
 
      def __captureDetailsArrival(self):
+          
+          def errors():
+                txt_BargeNo.configure(placeholder_text="REQUIRED",border_color='red')
+          def clearError():
+               txt_BargeNo.configure(placeholder_text='try "XAE234"',border_color= txt_BargeArrivalDate._border_color )
+                
+                
           def getTime():
                todayTime_date=datetime.now()
-               day = todayTime_date.strftime("%d/%M/%y")
+               day = todayTime_date.strftime("%D")
                time = todayTime_date.strftime("%I:%M")
                return day,time
           
           def __addToDb():
-               txt_sourceLocation.delete(0,custom.END)
-               txt_BargeNo.delete(0,custom.END)
-               txt_BargeArrivalDate.delete(0,custom.END)
-               txt_BargeArrivaltime.delete(0,custom.END)
-               txt_BargeArrivalDate.insert(0,string=getTime()[0])
-               txt_BargeArrivaltime.insert(0,string=getTime()[1])
-               txt_productlid.deselect()
-               txt_productDetails.delete('1.0',custom.END)
-               txt_comments.delete('1.0',custom.END)
+                #create a db
+               conn = sqlite3.connect('barge_book.db')
+
+               # create a cursor
+               c = conn.cursor()
+               
+               # c.execute("DROP TABLE barges")
+               
+               
+               try:
+                    c.execute("""CREATE TABLE barges( 
+                              
+                                        source text, 
+                                        bargeNo text, 
+                                        bargeArrivalDate text, 
+                                        bargeArrivalTime text, 
+                                        productDetails text, 
+                                        productWithLid integer, 
+                                        bargeReleaseTime text, 
+                                        bargeReleaseDate text, 
+                                        comments blob, 
+                                        PRIMARY KEY(bargeNo, bargeArrivalDate));""")
+               except:
+                    print("Already Done!")
+               
+               
+               if(txt_BargeNo.get() != ''):
+                    c.execute("""INSERT INTO barges(source, bargeNo, bargeArrivalDate, bargeArrivalTime,productDetails, productWithLid, comments) 
+                                   VALUES (:source, :bargeNo,:bargeArrivalDate, :bargeArrivalTime, :productDetails, :productWithLid, :comments)""",
+                                        {
+                                             'source':txt_sourceLocation.get(),
+                                             'bargeNo':txt_BargeNo.get(),
+                                             'bargeArrivalDate': txt_BargeArrivalDate.get(),
+                                             'bargeArrivalTime': txt_BargeArrivaltime.get(),
+                                             'productDetails':txt_productlid.get(),
+                                             'productWithLid':txt_productDetails.get('1.0',custom.END),
+                                             'comments':txt_comments.get('1.0',custom.END)
+                                        })
+                    txt_sourceLocation.delete(0,custom.END)
+                    txt_BargeNo.delete(0,custom.END)
+                    txt_BargeArrivalDate.delete(0,custom.END)
+                    txt_BargeArrivaltime.delete(0,custom.END)
+                    txt_BargeArrivalDate.insert(0,string=getTime()[0])
+                    txt_BargeArrivaltime.insert(0,string=getTime()[1])
+                    txt_productlid.deselect()
+                    txt_productDetails.delete('1.0',custom.END)
+                    txt_comments.delete('1.0',custom.END)
+                    clearError()
+               else:
+                    print("bargeNO is required")
+                    errors()
+               c.execute("SELECT bargeNo,bargeArrivalDate FROM barges")
+               
+               result= c.fetchall()
+               
+               print(result)
+               
+                    
+               #commit changes
+               conn.commit()
+
+               #close connection
+               conn.close()
+               
+               self.update()
+               
           
           def __goBack():
                for widget in self.winfo_children():
